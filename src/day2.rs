@@ -1,6 +1,7 @@
 const HALT: i32 = 99;
 const ADD: i32 = 1;
 const MULTIPLY: i32 = 2;
+const PART_TWO_EXPECTED_RESULT: i32 = 19690720;
 
 #[aoc_generator(day2)]
 pub fn day2_generator(input: &str) -> Vec<i32> {
@@ -13,12 +14,38 @@ pub fn day2_generator(input: &str) -> Vec<i32> {
 #[aoc(day2, part1)]
 pub fn part1(input: &Vec<i32>) -> String {
   let mut program = input.clone();
+  run_program(&mut program);
+
+  program
+    .iter()
+    .map(|num| num.to_string())
+    .collect::<Vec<_>>()
+    .join(",")
+}
+
+#[aoc(day2, part2)]
+pub fn part2(input: &Vec<i32>) -> i32 {
+  for position_one in 0..99 {
+    for position_two in 0..99 {
+      let mut initial_program = input.clone();
+      initial_program[1] = position_one;
+      initial_program[2] = position_two;
+      if run_program(&mut initial_program) == PART_TWO_EXPECTED_RESULT {
+        return position_one * 100 + position_two
+      }
+    }
+  }
+
+  0
+}
+
+fn run_program(program: &mut Vec<i32>) -> i32 {
   let mut current_index = 0;
-  let mut current_value = input.get(current_index).unwrap();
+  let mut current_value = program.get(current_index).unwrap();
   while *current_value != HALT as i32 {
     match *current_value {
-      ADD => add(&mut program, current_index),
-      MULTIPLY => multiply(&mut program, current_index),
+      ADD => add(program, current_index),
+      MULTIPLY => multiply(program, current_index),
       _ => panic!("How did you get here?"),
     }
 
@@ -26,11 +53,7 @@ pub fn part1(input: &Vec<i32>) -> String {
     current_value = &program[current_index];
   }
 
-  program
-    .iter()
-    .map(|num| num.to_string())
-    .collect::<Vec<_>>()
-    .join(",")
+  program[0]
 }
 
 fn add(input_list: &mut Vec<i32>, index: usize) {
