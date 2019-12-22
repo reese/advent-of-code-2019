@@ -1,8 +1,8 @@
-
 use std::num::ParseIntError;
 use std::str::FromStr;
+use std::fmt::Display;
+use std::error::Error;
 
-#[derive(Debug)]
 pub enum Instruction {
     Right(u32),
     Down(u32),
@@ -48,7 +48,7 @@ impl FromStr for Instruction {
     }
 }
 
-impl std::fmt::Display for InstructionParseError {
+impl Display for InstructionParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             InstructionParseError::IntError(pie) => write!(f, "Error parsing integer {}", pie),
@@ -56,7 +56,7 @@ impl std::fmt::Display for InstructionParseError {
         }
     }
 }
-impl std::error::Error for InstructionParseError {}
+impl Error for InstructionParseError {}
 
 pub struct Node {
     position: (i32, i32),
