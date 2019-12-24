@@ -1,26 +1,21 @@
-const HALT: i32 = 99;
-const ADD: i32 = 1;
-const MULTIPLY: i32 = 2;
+use crate::intcode::Program;
+
 const PART_TWO_EXPECTED_RESULT: i32 = 19690720;
 
 #[aoc_generator(day2)]
 pub fn day2_generator(input: &str) -> Vec<i32> {
   input
     .split(",")
-    .map(|number| number.to_string().parse::<i32>().unwrap())
+    .map(|number| number.to_string().parse::<i32>())
+    .filter_map(Result::ok)
     .collect()
 }
 
 #[aoc(day2, part1)]
-pub fn part1(input: &Vec<i32>) -> String {
-  let mut program = input.clone();
-  run_program(&mut program);
-
-  program
-    .iter()
-    .map(|num| num.to_string())
-    .collect::<Vec<_>>()
-    .join(",")
+pub fn part1(input: &Vec<i32>) -> i32 {
+  let mut program = Program::create(input.clone());
+  program.run();
+  program.get_return_value()
 }
 
 #[aoc(day2, part2)]
@@ -30,53 +25,46 @@ pub fn part2(input: &Vec<i32>) -> i32 {
       let mut initial_program = input.clone();
       initial_program[1] = position_one;
       initial_program[2] = position_two;
-      if run_program(&mut initial_program) == PART_TWO_EXPECTED_RESULT {
+      let mut program = Program::create(initial_program);
+      program.run();
+
+      if  program.get_return_value() == PART_TWO_EXPECTED_RESULT {
         return position_one * 100 + position_two
       }
     }
   }
 
-  0
-}
-
-fn run_program(program: &mut Vec<i32>) -> i32 {
-  let mut current_index = 0;
-  let mut current_value = program.get(current_index).unwrap();
-  while *current_value != HALT as i32 {
-    match *current_value {
-      ADD => add(program, current_index),
-      MULTIPLY => multiply(program, current_index),
-      _ => panic!("How did you get here?"),
-    }
-
-    current_index += 4;
-    current_value = &program[current_index];
-  }
-
-  program[0]
-}
-
-fn add(input_list: &mut Vec<i32>, index: usize) {
-  let storage_index = input_list[index + 3] as usize;
-  input_list[storage_index] =
-    input_list[input_list[index + 1] as usize] + input_list[input_list[index + 2] as usize];
-}
-
-fn multiply(input_list: &mut Vec<i32>, index: usize) {
-  let storage_index = input_list[index + 3] as usize;
-  input_list[storage_index] =
-    input_list[input_list[index + 1] as usize] * input_list[input_list[index + 2] as usize];
+  panic!("Qualifying pair not found.")
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::fs::read_to_string;
 
   #[test]
   fn part_one_works_for_example_cases() {
     let input = "1,9,10,3,2,3,11,0,99,30,40,50";
-    let expected_output = "3500,9,10,70,2,3,11,0,99,30,40,50";
+    let expected_output = 3500;
 
     assert_eq!(part1(&day2_generator(input)), expected_output);
+  }
+
+  #[test]
+  fn it_returns_the_correct_answer_for_part_one() {
+    let input = get_input_file();
+
+    assert_eq!(part1(&day2_generator(input.as_ref())), 7210630);
+  }
+
+  #[test]
+  fn it_returns_the_correct_answer_for_part_two() {
+    let input = get_input_file();
+
+    assert_eq!(part2(&day2_generator(input.as_ref())), 3892);
+  }
+
+  fn get_input_file() -> String {
+    read_to_string("input/2019/day2.txt").expect("Could not read file.")
   }
 }
